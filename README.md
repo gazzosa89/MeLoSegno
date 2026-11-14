@@ -1,15 +1,20 @@
 # MeLoSegno 📝
 
-**Le tue idee, i tuoi appunti, i tuoi scarabocchi. Tutto a portata di mano!**
+**Note rapide per pensieri sfuggenti**
 
-MeLoSegno è una piccola app Android per mettere nero su bianco pensieri, appunti e promemoria, senza complicazioni. Puoi scrivere con la tastiera oppure usare le dita per prendere appunti a mano libera. ✍️
-
-### ✨ Cosa puoi fare?
+MeLoSegno è una piccola app per buttare giù pensieri e appunti veloci, senza complicazioni. 
+Esistono tante app che fanno lo stesso, ma in nessuna ho trovato l'immediatezza che mi serviva.
+Con MeLoSegno appena apri l'app potrai subito iniziare a scrivere! 
+Niente account, tutorial, popup, pubblicità.
 
 - ⌨️ Scrivere note con la tastiera.
 - ✍️ Disegnare e scrivere a mano libera.
-- 📝 Creare note con testo e disegni.
-- 🔎 Ritrovare, consultare e modificare le note salvate.
+- 📝 Creare note con tastiera + mano libera.
+- 📋️ Elenchi puntati e numerati.
+- 🔎 Consultare e modificare le note salvate.
+
+### WIDGET INTEGRATO 📌
+Apporre una puntina ti consentirà di fissare una nota alla Home.
 
 ### 📲 Download
 
