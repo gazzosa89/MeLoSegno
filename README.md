@@ -20,14 +20,13 @@ Apporre una puntina ti consentirà di fissare una nota alla Home.
 
 [**⬇️ Scarica MeLoSegno**](https://github.com/gazzosa89/MeLoSegno/releases/latest)
 
-L'app è gratuita e distribuita in formato APK.
+
 
 ### 🚀 Come installarla
 
-1. Scarica l'APK dalla sezione Releases.
+1. Scarica l'APK dal link sopra o dalla sezione Releases.
 2. Apri il file sul tuo dispositivo Android.
 3. Se richiesto, autorizza l'installazione da questa origine.
-4. Installa l'app e... buon appunto! 😊
 
 ### ❤️ Ti piace MeLoSegno?
 
@@ -43,4 +42,4 @@ Ti piace l'app? Passa parola! 😊
 
 ---
 
-*MeLoSegno – Per non lasciare scappare nemmeno un'idea.* 💡
+
