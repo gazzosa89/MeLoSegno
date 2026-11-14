@@ -1,4 +1,4 @@
-# MeLoSegno 📝
+# MeLoSegno 
 
 **Note rapide per pensieri sfuggenti**
 
