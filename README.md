@@ -16,13 +16,13 @@ Niente account, tutorial, popup, pubblicità.
 ### WIDGET INTEGRATO 📌
 Apporre una puntina ti consentirà di fissare una nota alla Home.
 
-### 📲 Download
+### Download
 
 [**⬇️ Scarica MeLoSegno**](https://github.com/gazzosa89/MeLoSegno/releases/latest)
 
 
 
-### 🚀 Come installarla
+### Come installarla
 
 1. Scarica l'APK dal link sopra o dalla sezione Releases.
 2. Apri il file sul tuo dispositivo Android.
@@ -32,7 +32,7 @@ Apporre una puntina ti consentirà di fissare una nota alla Home.
 
 MeLoSegno è completamente gratuita e senza pubblicità. Se ti è utile e vuoi sostenere questo e altri progetti, offrimi un caffè! ☕
 
-[**☕ Offrimi un caffè su Ko-fi**](https://ko-fi.com/danielecorda)
+[**☕ Offrimi un caffè**](https://ko-fi.com/danielecorda)
 
 ### 🔗 Condividi
 
