@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Cuore per la donazione -->
+    <path
+        android:strokeColor="#FF1C1B1F"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M12,20.5S3.5,15.5 3.5,9.4C3.5,6.4 5.9,4.5 8.3,4.5c1.6,0 3,0.8 3.7,2 0.7,-1.2 2.1,-2 3.7,-2 2.4,0 4.8,1.9 4.8,4.9 0,6.1 -8.5,11.1 -8.5,11.1z" />
+</vector>

@@ -1,0 +1,98 @@
+<resources>
+    <string name="app_name">MeLoSegno</string>
+    <!-- Etichetta mostrata nel drawer delle app -->
+    <string name="note_label">Note</string>
+
+    <!-- Barra superiore -->
+    <string name="menu_desc">Note salvate</string>
+    <string name="close_desc">Chiudi</string>
+    <string name="mode_text_desc">Scrittura con tastiera</string>
+    <string name="mode_hand_desc">Scrittura a mano</string>
+    <string name="eraser_desc">Gomma</string>
+    <string name="trash_desc">Scarta e nuova nota</string>
+    <string name="save_desc">Salva</string>
+    <string name="delete_desc">Elimina nota</string>
+
+    <!-- Conferma scarto del documento corrente -->
+    <string name="discard_title">Scartare la nota?</string>
+    <string name="discard_message">La nota attuale verrà scartata e ne verrà aperta una nuova vuota.</string>
+    <string name="discard_confirm">Scarta</string>
+    <string name="cancel">Annulla</string>
+
+    <!-- Conferma eliminazione di una nota salvata -->
+    <string name="delete_title">Eliminare la nota?</string>
+    <string name="delete_message">La nota del %1$s verrà eliminata definitivamente.</string>
+    <string name="delete_confirm">Elimina</string>
+
+    <!-- Elenco delle note salvate -->
+    <string name="saved_notes_title">Note salvate</string>
+    <string name="empty_list">Nessuna nota salvata</string>
+    <string name="default_hand_title">Scrittura a mano</string>
+    <string name="empty_note_title">(vuota)</string>
+    <string name="saved_toast">Nota salvata</string>
+    <string name="write_hint">Scrivi qui…</string>
+
+    <!-- Titolo al primo salvataggio -->
+    <string name="title_dialog_title">Salva la nota</string>
+    <string name="title_dialog_message">Dai un titolo alla nota.</string>
+    <string name="title_hint">Titolo</string>
+
+    <!-- Cambio lingua -->
+    <string name="language_restart_title">Applicare la nuova lingua?</string>
+    <string name="language_restart_message">Per applicarla a tutte le parti dell\'app è necessario riavviarla.</string>
+    <string name="language_restart_confirm">Riavvia</string>
+
+    <!-- Barra strumenti inferiore -->
+    <string name="size_text_desc">Dimensione del testo</string>
+    <string name="style_desc">Stile del testo</string>
+    <string name="color_desc">Colore</string>
+    <string name="size_stroke_desc">Dimensione del tratto</string>
+
+    <!-- Opzioni dei menu della barra strumenti -->
+    <string name="style_bold">Grassetto</string>
+    <string name="style_italic">Corsivo</string>
+    <string name="style_underline">Sottolineato</string>
+    <string name="style_strike">Barrato</string>
+    <string name="size_thin">Sottile</string>
+    <string name="size_normal">Normale</string>
+    <string name="size_thick">Spesso</string>
+    <string name="size_extra_thick">Molto spesso</string>
+
+    <!-- Impostazioni -->
+    <string name="settings_desc">Impostazioni</string>
+    <string name="back_desc">Indietro</string>
+    <string name="settings_default_mode">Modalità predefinita</string>
+    <string name="settings_icon_label">Etichetta icona</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_language">Lingua</string>
+    <string name="lang_it">Italiano</string>
+    <string name="lang_en">English</string>
+    <string name="chip_text">Scrittura</string>
+    <string name="chip_hand">A mano</string>
+    <string name="theme_light">Chiaro</string>
+    <string name="theme_dark">Scuro</string>
+    <string name="theme_system">Sistema</string>
+
+    <!-- Pagina Informazioni -->
+    <string name="info_desc">Informazioni</string>
+    <string name="author_label">Autore</string>
+    <string name="author_name">Daniele Corda</string>
+    <string name="version_label">Versione</string>
+    <string name="license_label">Licenza</string>
+    <string name="license_text">MeLoSegno è rilasciata con licenza GPL.</string>
+    <string name="share_button">Condividi questa app</string>
+    <string name="share_message">Dai un\'occhiata a MeLoSegno, l\'app per note rapide: %1$s</string>
+    <string name="app_link">https://www.link-placeholder.it/melosegno</string>
+    <string name="donate_text">MeLoSegno è completamente gratuita e senza pubblicità. Se ti è utile e vuoi sostenere questo e altri progetti, offrimi un caffè! ☕</string>
+    <string name="donate_button">Supporta</string>
+    <string name="donate_link">https://www.link-placeholder.it/dona-melosegno</string>
+
+    <!-- Elenchi nella modalità testo -->
+    <string name="list_desc">Elenchi</string>
+    <string name="list_bullet">Elenco puntato</string>
+    <string name="list_numbered">Elenco numerato</string>
+
+    <!-- Modifica del titolo dall'elenco delle note -->
+    <string name="rename_desc">Modifica il titolo</string>
+    <string name="rename_title">Modifica il titolo</string>
+</resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Informazioni: cerchio, punto esclamativo tondo -->
+    <path
+        android:strokeColor="#FF1C1B1F"
+        android:strokeWidth="2"
+        android:pathData="M12,3a9,9 0 1 0 0,18a9,9 0 1 0 0,-18z" />
+    <path
+        android:strokeColor="#FF1C1B1F"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M12,11v5.5" />
+    <path
+        android:fillColor="#FF1C1B1F"
+        android:pathData="M10.9,7.5a1.1,1.1 0 1 0 2.2,0a1.1,1.1 0 1 0 -2.2,0z" />
+</vector>

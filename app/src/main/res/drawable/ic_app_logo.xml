@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logo compatto dell'app (24dp, usato con painterResource): line art del
+     blocco note con matita, fedele al file logo.svg allegato (senza cornice
+     esterna, coordinate originali mappate con le trasformazioni dei gruppi). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- path2: corpo del blocco note (ha una trasformazione propria) -->
+    <group
+        android:scaleX="3.7861"
+        android:scaleY="3.7861"
+        android:translateX="-424.605"
+        android:translateY="-539.888">
+        <path
+            android:pathData="m 115.03091,147.99473 h -1.38953 a 0.53624517,0.53624517 45 0 1 -0.53625,-0.53625 v -3.45081 a 0.47790821,0.47790821 135 0 1 0.47791,-0.47791 h 2.76872 a 0.41059742,0.41059742 45 0 1 0.4106,0.4106 v 1.89924"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.264583" />
+    </group>
+    <!-- paths 3..9: spirale, righe, onda e matita -->
+    <group
+        android:scaleX="2.4724"
+        android:scaleY="2.4724"
+        android:translateX="-272.864"
+        android:translateY="-347.092">
+        <path
+            android:pathData="m 113.16919,141.19631 v 1.44308"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.405169" />
+        <path
+            android:pathData="m 114.73253,141.19631 v 1.44308"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.405169" />
+        <path
+            android:pathData="m 116.31304,141.19631 v 1.44308"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.405169" />
+        <path
+            android:pathData="m 113.13485,143.56708 h 2.92049 v 0.0343 0"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.405169" />
+        <path
+            android:pathData="m 113.27227,144.52912 h 1.78667"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.405169" />
+        <path
+            android:pathData="m 113.14965,146.24295 c 0,0 0.58343,-0.78712 1.10379,0.0695 0.52035,0.85654 0.25229,-0.85658 0.85149,-0.13889 0.5992,0.71765 0.63073,-0.16204 0.63073,-0.16204"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.225303" />
+        <path
+            android:pathData="m 115.47124,148.13681 v 1.13386 h 1.03078 l 2.13025,-2.19897 -0.24052,-0.75591 -0.85896,-0.4123 z"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.405169" />
+    </group>
+    <!-- path11: pennuta piena -->
+    <group
+        android:scaleX="1.5487"
+        android:scaleY="1.5487"
+        android:translateX="-166.770"
+        android:translateY="-213.424">
+        <path
+            android:pathData="m 118.22673,147.643 0.9118,-0.95739 1.39048,0.56988 0.29634,1.20813 -0.75223,0.79782 z"
+            android:fillColor="#FF000000"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.264583" />
+    </group>
+</vector>

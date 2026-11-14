@@ -1,0 +1,98 @@
+<resources>
+    <string name="app_name">MeLoSegno</string>
+    <!-- Label shown in the apps drawer -->
+    <string name="note_label">Note</string>
+
+    <!-- Top bar -->
+    <string name="menu_desc">Saved notes</string>
+    <string name="close_desc">Close</string>
+    <string name="mode_text_desc">Keyboard writing</string>
+    <string name="mode_hand_desc">Handwriting</string>
+    <string name="eraser_desc">Eraser</string>
+    <string name="trash_desc">Discard and new note</string>
+    <string name="save_desc">Save</string>
+    <string name="delete_desc">Delete note</string>
+
+    <!-- Discard current note -->
+    <string name="discard_title">Discard the note?</string>
+    <string name="discard_message">The current note will be discarded and a new empty one will open.</string>
+    <string name="discard_confirm">Discard</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Confirm deletion of a saved note -->
+    <string name="delete_title">Delete the note?</string>
+    <string name="delete_message">The note from %1$s will be permanently deleted.</string>
+    <string name="delete_confirm">Delete</string>
+
+    <!-- Saved notes list -->
+    <string name="saved_notes_title">Saved notes</string>
+    <string name="empty_list">No saved notes</string>
+    <string name="default_hand_title">Handwriting</string>
+    <string name="empty_note_title">(empty)</string>
+    <string name="saved_toast">Note saved</string>
+    <string name="write_hint">Write here…</string>
+
+    <!-- Title at first save -->
+    <string name="title_dialog_title">Save the note</string>
+    <string name="title_dialog_message">Give the note a title.</string>
+    <string name="title_hint">Title</string>
+
+    <!-- Language change -->
+    <string name="language_restart_title">Apply the new language?</string>
+    <string name="language_restart_message">The app will restart to apply it to every part.</string>
+    <string name="language_restart_confirm">Restart</string>
+
+    <!-- Bottom toolbar -->
+    <string name="size_text_desc">Text size</string>
+    <string name="style_desc">Text style</string>
+    <string name="color_desc">Color</string>
+    <string name="size_stroke_desc">Stroke size</string>
+
+    <!-- Toolbar menu options -->
+    <string name="style_bold">Bold</string>
+    <string name="style_italic">Italic</string>
+    <string name="style_underline">Underline</string>
+    <string name="style_strike">Strikethrough</string>
+    <string name="size_thin">Thin</string>
+    <string name="size_normal">Normal</string>
+    <string name="size_thick">Thick</string>
+    <string name="size_extra_thick">Extra thick</string>
+
+    <!-- Settings -->
+    <string name="settings_desc">Settings</string>
+    <string name="back_desc">Back</string>
+    <string name="settings_default_mode">Default mode</string>
+    <string name="settings_icon_label">App label</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_language">Language</string>
+    <string name="lang_it">Italiano</string>
+    <string name="lang_en">English</string>
+    <string name="chip_text">Typing</string>
+    <string name="chip_hand">Handwriting</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System</string>
+
+    <!-- About page -->
+    <string name="info_desc">About</string>
+    <string name="author_label">Author</string>
+    <string name="author_name">Daniele Corda</string>
+    <string name="version_label">Version</string>
+    <string name="license_label">License</string>
+    <string name="license_text">MeLoSegno is released under the GPL license.</string>
+    <string name="share_button">Share this app</string>
+    <string name="share_message">Check out MeLoSegno, the quick notes app: %1$s</string>
+    <string name="app_link">https://www.link-placeholder.it/melosegno</string>
+    <string name="donate_text">MeLoSegno is completely free and ad-free. If you find it useful and want to support this and other projects, buy me a coffee! ☕</string>
+    <string name="donate_button">Support</string>
+    <string name="donate_link">https://www.link-placeholder.it/dona-melosegno</string>
+
+    <!-- Lists in text mode -->
+    <string name="list_desc">Lists</string>
+    <string name="list_bullet">Bullet list</string>
+    <string name="list_numbered">Numbered list</string>
+
+    <!-- Title editing from the notes list -->
+    <string name="rename_desc">Edit title</string>
+    <string name="rename_title">Edit the title</string>
+</resources>
