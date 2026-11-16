@@ -5,7 +5,7 @@
 MeLoSegno è una piccola app per buttare giù pensieri e appunti veloci, senza complicazioni. 
 Esistono tante app che fanno lo stesso, ma in nessuna ho trovato l'immediatezza che mi serviva.
 Con MeLoSegno appena apri l'app potrai subito iniziare a scrivere! 
-Niente account, tutorial, popup, pubblicità.
+Niente richieste di login, tutorial, popup, pubblicità. 
 
 - ⌨️ Scrivere note con la tastiera.
 - ✍️ Disegnare e scrivere a mano libera.
@@ -17,6 +17,8 @@ Niente account, tutorial, popup, pubblicità.
 Apporre una puntina ti consentirà di fissare una nota alla Home.
 
 <img width="408" height="726" alt="Screenshot_20261115-135234" src="https://github.com/user-attachments/assets/7b431129-18bd-493b-92b4-ced81144eea9" />
+
+MeLoSegno è pensata per funzionare completamente offline. Non raccoglie dati personali e tutto viene salvato in locale. Non richiede permessi e registrazione. È libera da tracking e analytics.
 
 ### Download
 
