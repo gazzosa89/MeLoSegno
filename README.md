@@ -16,7 +16,7 @@ Niente account, tutorial, popup, pubblicità.
 ### WIDGET INTEGRATO 📌
 Apporre una puntina ti consentirà di fissare una nota alla Home.
 
-<img width="480" height="854" alt="Screenshot_20261115-135234" src="https://github.com/user-attachments/assets/7b431129-18bd-493b-92b4-ced81144eea9" />
+<img width="408" height="726" alt="Screenshot_20261115-135234" src="https://github.com/user-attachments/assets/7b431129-18bd-493b-92b4-ced81144eea9" />
 
 ### Download
 
