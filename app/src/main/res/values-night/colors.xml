@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Versione scura dei colori del widget della nota fissata -->
+    <color name="widget_background">#FF201F1D</color>
+    <color name="widget_text">#FFECE4DC</color>
+</resources>

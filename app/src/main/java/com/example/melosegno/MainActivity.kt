@@ -1,6 +1,7 @@
 package com.example.melosegno
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.LocaleList
@@ -11,6 +12,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,9 +24,16 @@ import com.example.melosegno.data.SettingsRepository
 import com.example.melosegno.data.ThemeSetting
 import com.example.melosegno.ui.MeLoSegnoApp
 import com.example.melosegno.ui.theme.MeLoSegnoTheme
+import com.example.melosegno.widget.PinnedNoteWidget
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
+
+    /**
+     * Id della nota da aprire, arrivato dal widget della nota fissata.
+     * 0 significa "nessuna richiesta": si apre una nota nuova.
+     */
+    private var pendingOpenNoteId by mutableLongStateOf(0L)
 
     /**
      * La lingua salvata viene applicata alla base dell'intera Activity, cosi'
@@ -52,14 +61,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Richiesta di apertura dal widget: vale solo per l'avvio corrente.
+        pendingOpenNoteId = intent?.getLongExtra(PinnedNoteWidget.EXTRA_NOTE_ID, 0L) ?: 0L
         setContent {
             val settingsRepo = remember { SettingsRepository(applicationContext) }
             val noteRepo = remember { NoteRepository(applicationContext) }
             var settings by remember { mutableStateOf(settingsRepo.load()) }
 
-            // All'avvio l'icona nel drawer porta l'etichetta salvata.
+            // All'avvio l'icona nel drawer porta etichetta e colore salvati.
             LaunchedEffect(Unit) {
-                settingsRepo.applyIconLabel(applicationContext, settings.useShortLabel)
+                settingsRepo.applyIconLabel(applicationContext, settings)
             }
 
             val darkTheme = when (settings.theme) {
@@ -95,10 +106,19 @@ class MainActivity : ComponentActivity() {
                         repository = noteRepo,
                         settingsRepo = settingsRepo,
                         settings = settings,
-                        onSettingsChange = { settings = it }
+                        onSettingsChange = { settings = it },
+                        openNoteRequest = pendingOpenNoteId,
+                        onOpenNoteHandled = { pendingOpenNoteId = 0L }
                     )
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // L'app era gia' aperta: si passa la richiesta alla UI corrente.
+        pendingOpenNoteId = intent.getLongExtra(PinnedNoteWidget.EXTRA_NOTE_ID, 0L)
     }
 }

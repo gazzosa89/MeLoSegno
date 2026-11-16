@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splashscreen di sistema (Android 12+): sfondo blu del logo, icona
+         dell'app e animazione breve. La durata resta legata al tempo di
+         avvio dell'app: non e' impostabile a mano. -->
+    <style name="Theme.MeLoSegno" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowSplashScreenAnimationDuration">200</item>
+    </style>
+</resources>

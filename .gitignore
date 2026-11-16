@@ -12,4 +12,8 @@
 /captures
 .externalNativeBuild
 .cxx
+# Keystore e credenziali di firma: mai versionate, mai pubblicate
+keystore.properties
+*.jks
+*.keystore
 local.properties

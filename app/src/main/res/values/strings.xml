@@ -42,6 +42,11 @@
     <string name="language_restart_message">Per applicarla a tutte le parti dell\'app è necessario riavviarla.</string>
     <string name="language_restart_confirm">Riavvia</string>
 
+    <!-- Conferma del cambio icona (etichetta e colore) -->
+    <string name="icon_restart_title">Applicare la nuova icona?</string>
+    <string name="icon_restart_message">Per applicare l\'etichetta e il colore all\'icona è necessario riavviare l\'app.</string>
+    <string name="icon_restart_confirm">Riavvia</string>
+
     <!-- Barra strumenti inferiore -->
     <string name="size_text_desc">Dimensione del testo</string>
     <string name="style_desc">Stile del testo</string>
@@ -62,7 +67,10 @@
     <string name="settings_desc">Impostazioni</string>
     <string name="back_desc">Indietro</string>
     <string name="settings_default_mode">Modalità predefinita</string>
-    <string name="settings_icon_label">Etichetta icona</string>
+    <string name="settings_icon_customize">Personalizza icona</string>
+    <string name="settings_icon_label">Etichetta</string>
+    <string name="settings_icon_color">Colore</string>
+    <string name="settings_icon_color_reset">Ripristina</string>
     <string name="settings_theme">Tema</string>
     <string name="settings_language">Lingua</string>
     <string name="lang_it">Italiano</string>
@@ -79,13 +87,29 @@
     <string name="author_name">Daniele Corda</string>
     <string name="version_label">Versione</string>
     <string name="license_label">Licenza</string>
-    <string name="license_text">MeLoSegno è rilasciata con licenza GPL.</string>
+    <string name="license_text">MeLoSegno è rilasciata con licenza GPLv3.</string>
     <string name="share_button">Condividi questa app</string>
     <string name="share_message">Dai un\'occhiata a MeLoSegno, l\'app per note rapide: %1$s</string>
-    <string name="app_link">https://www.link-placeholder.it/melosegno</string>
+    <string name="app_link">https://github.com/gazzosa89/MeLoSegno</string>
     <string name="donate_text">MeLoSegno è completamente gratuita e senza pubblicità. Se ti è utile e vuoi sostenere questo e altri progetti, offrimi un caffè! ☕</string>
     <string name="donate_button">Supporta</string>
-    <string name="donate_link">https://www.link-placeholder.it/dona-melosegno</string>
+    <string name="donate_link">https://ko-fi.com/danielecorda</string>
+
+    <!-- Licenze dei componenti di terze parti -->
+    <string name="licenses_title">Licenze dei componenti di terze parti</string>
+    <string name="licenses_intro">L\'app utilizza i seguenti componenti open source, tutti rilasciati sotto la Apache License 2.0.</string>
+    <string name="license_project">Progetto</string>
+    <string name="license_full_text_title">Testo completo della Apache License 2.0</string>
+
+    <!-- Informativa sulla privacy -->
+    <string name="privacy_title">Privacy</string>
+    <string name="privacy_intro">MeLoSegno è progettata per funzionare interamente offline.</string>
+    <string name="privacy_bullet_1">Non raccoglie né trasmette dati personali allo sviluppatore.</string>
+    <string name="privacy_bullet_2">Non utilizza pubblicità, analytics o sistemi di tracciamento.</string>
+    <string name="privacy_bullet_3">Le note, i disegni e le impostazioni vengono salvati localmente sul dispositivo.</string>
+    <string name="privacy_bullet_4">Non è richiesto alcun account o registrazione.</string>
+    <string name="privacy_bullet_5">Non richiede alcun permesso di sistema.</string>
+    <string name="privacy_bullet_6">Eventuali collegamenti esterni vengono aperti esclusivamente su richiesta dell\'utente.</string>
 
     <!-- Elenchi nella modalità testo -->
     <string name="list_desc">Elenchi</string>
@@ -95,4 +119,14 @@
     <!-- Modifica del titolo dall'elenco delle note -->
     <string name="rename_desc">Modifica il titolo</string>
     <string name="rename_title">Modifica il titolo</string>
+
+    <!-- Fissaggio della nota e widget -->
+    <string name="pin_desc">Fissa la nota nel widget</string>
+    <string name="unpin_desc">Togli la nota dal widget</string>
+    <string name="widget_name">Nota fissata</string>
+    <string name="widget_empty_note">Nota vuota</string>
+    <string name="widget_no_pin">Nessuna nota fissata.\nApri una nota e tocca il pin.</string>
+    <string name="widget_prompt_title">Aggiungere il widget?</string>
+    <string name="widget_prompt_message">La Puntina serve a fissare una nota al widget, per averla sempre in vista. Al momento però non hai ancora il widget. Vuoi aggiungerlo alla Home?</string>
+    <string name="widget_prompt_confirm">Aggiungi</string>
 </resources>

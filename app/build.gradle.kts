@@ -1,12 +1,34 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+// Credenziali di firma in keystore.properties, file non versionato:
+// il keystore e' locale e non va mai pubblicato.
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) {
+        keystorePropsFile.inputStream().use { load(it) }
+    }
 }
 
 android {
     namespace = "com.example.melosegno"
     compileSdk {
         version = release(37)
+    }
+
+    signingConfigs {
+        create("release") {
+            if (keystorePropsFile.exists()) {
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
     }
 
     defaultConfig {
@@ -21,10 +43,11 @@ android {
 
     buildTypes {
         release {
-            optimization {
-                enable = true
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
-            }
+            // Nessuna ottimizzazione R8: la configurazione sperimentale
+            // packageScope rompeva l'avvio (IllegalAccessError tra classi
+            // rinominate di kotlin/lifecycle). L'app e' piccola: meglio
+            // una release affidabile, comunque piu' veloce della debug.
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

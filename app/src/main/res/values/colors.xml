@@ -7,6 +7,24 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <!-- Sfondo dell'icona dell'app: bianco, per la line art nera del logo -->
-    <color name="ic_launcher_background">#FFFFFFFF</color>
+    <!-- Sfondo dell'icona dell'app: blu del logo -->
+    <color name="ic_launcher_background">#FF4584C8</color>
+
+    <!-- Widget della nota fissata -->
+    <color name="widget_background">#FFFCF9F4</color>
+    <color name="widget_text">#FF1C1B1F</color>
+
+    <!-- Sfondi icona per le varianti di colore -->
+    <color name="ic_launcher_bg_default">#FF4584C8</color>
+    <color name="ic_launcher_bg_1c1b1f">#FF1C1B1F</color>
+    <color name="ic_launcher_bg_616161">#FF616161</color>
+    <color name="ic_launcher_bg_1565c0">#FF1565C0</color>
+    <color name="ic_launcher_bg_00838f">#FF00838F</color>
+    <color name="ic_launcher_bg_2e7d32">#FF2E7D32</color>
+    <color name="ic_launcher_bg_c62828">#FFC62828</color>
+    <color name="ic_launcher_bg_ef6c00">#FFEF6C00</color>
+    <color name="ic_launcher_bg_f9a825">#FFF9A825</color>
+    <color name="ic_launcher_bg_6a1b9a">#FF6A1B9A</color>
+    <color name="ic_launcher_bg_ad1457">#FFAD1457</color>
+    <color name="ic_launcher_bg_ffffff">#FFFFFFFF</color>
 </resources>

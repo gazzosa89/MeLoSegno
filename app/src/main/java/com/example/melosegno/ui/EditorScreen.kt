@@ -1,7 +1,11 @@
 package com.example.melosegno.ui
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.os.Build
 import android.app.Activity
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import android.content.ContextWrapper
 import android.content.Intent
 import android.widget.Toast
@@ -21,6 +25,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -29,12 +34,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -58,6 +65,7 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -73,12 +81,14 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke as DrawStroke
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
@@ -88,6 +98,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.melosegno.R
@@ -98,6 +109,7 @@ import com.example.melosegno.data.FormatStyle
 import com.example.melosegno.data.LanguageSetting
 import com.example.melosegno.data.NoteData
 import com.example.melosegno.data.NoteRepository
+import com.example.melosegno.data.PinnedNoteStore
 import com.example.melosegno.data.SettingsRepository
 import com.example.melosegno.data.Stroke
 import com.example.melosegno.data.ThemeSetting
@@ -106,10 +118,14 @@ import com.example.melosegno.data.activeFormatAt
 import com.example.melosegno.data.annotated
 import com.example.melosegno.data.applyTextEdit
 import com.example.melosegno.data.effectiveFormatValue
+import com.example.melosegno.data.formatValueAtSelectionStart
 import com.example.melosegno.data.withFormatApplied
+import com.example.melosegno.widget.PinnedNoteWidget
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.max
+import kotlin.math.roundToInt
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -129,7 +145,8 @@ private val NOTE_COLORS = listOf(
     ColorOption(0xFFEF6C00), // arancione
     ColorOption(0xFFF9A825), // giallo
     ColorOption(0xFF6A1B9A), // viola
-    ColorOption(0xFFAD1457)  // rosa
+    ColorOption(0xFFAD1457), // rosa
+    ColorOption(0xFFFFFFFF)  // bianco
 )
 
 private data class StrokeSizeOption(val labelRes: Int, val valueDp: Float)
@@ -143,6 +160,9 @@ private val STROKE_SIZES = listOf(
 
 /** Raggio della gomma, 1:1 con lo spessore del tratto scelto. */
 private const val ERASER_RADIUS_SCALE = 1f
+
+/** Larghezza massima del contenuto: su schermi larghi resta leggibile. */
+private val MAX_CONTENT_WIDTH = 640.dp
 
 /** Lunghezza massima del titolo di una nota. */
 private const val MAX_TITLE_LENGTH = 40
@@ -196,7 +216,10 @@ fun MeLoSegnoApp(
     repository: NoteRepository,
     settingsRepo: SettingsRepository,
     settings: AppSettings,
-    onSettingsChange: (AppSettings) -> Unit
+    onSettingsChange: (AppSettings) -> Unit,
+    // Nota da aprire all'avvio, richiesta dal widget della nota fissata.
+    openNoteRequest: Long = 0L,
+    onOpenNoteHandled: () -> Unit = {}
 ) {
     var note by remember { mutableStateOf(NoteData()) }
     var mode by remember { mutableStateOf(settings.defaultMode) }
@@ -214,11 +237,27 @@ fun MeLoSegnoApp(
     // Al primo salvataggio si chiede il titolo della nota.
     var showTitleDialog by remember { mutableStateOf(false) }
     var savedNotes by remember { mutableStateOf(emptyList<NoteData>()) }
+    // Altezza dell'area visibile tra le barre: il foglio e' almeno cosi' alta.
+    var viewportHeightPx by remember { mutableStateOf(0) }
+    // Layout del testo in editor: serve a far seguire il cursore al foglio.
+    var textLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+    // All'apertura di una nota il foglio resta dov'e': niente salto al cursore.
+    var suppressCaretFollow by remember { mutableStateOf(false) }
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val keyboard = LocalSoftwareKeyboardController.current
+    // Nota fissata nel widget: 0 = nessuna.
+    val pinnedStore = remember { PinnedNoteStore(context) }
+    var pinnedId by remember { mutableLongStateOf(pinnedStore.pinnedNoteId()) }
+    // Fissaggio richiesto ma widget assente: si chiede se aggiungerlo.
+    var noteToPinWithoutWidget by remember { mutableStateOf<NoteData?>(null) }
+
+    // Tasto indietro col menu aperto: chiude il menu invece di uscire dall'app.
+    BackHandler(enabled = drawerState.isOpen) {
+        scope.launch { drawerState.close() }
+    }
     // Raggio della gomma, uguale allo spessore del tratto scelto.
     val densityPxPerDp = LocalDensity.current.density
     val eraseRadiusPx = with(LocalDensity.current) { (note.strokeSizeDp * ERASER_RADIUS_SCALE).dp.toPx() }
@@ -238,8 +277,11 @@ fun MeLoSegnoApp(
 
     fun updateSettings(updated: AppSettings) {
         settingsRepo.save(updated)
-        if (updated.useShortLabel != settings.useShortLabel) {
-            settingsRepo.applyIconLabel(context, updated.useShortLabel)
+        // Etichetta o colore dell'icona cambiati: si attiva l'alias giusto.
+        if (updated.useShortLabel != settings.useShortLabel ||
+            updated.iconColorKey != settings.iconColorKey
+        ) {
+            settingsRepo.applyIconLabel(context, updated)
         }
         onSettingsChange(updated)
     }
@@ -248,6 +290,36 @@ fun MeLoSegnoApp(
         scope.launch {
             note = withContext(Dispatchers.IO) { repository.saveNote(note) }
             Toast.makeText(context, R.string.saved_toast, Toast.LENGTH_SHORT).show()
+            // Il widget mostra la nota fissata: se e' quella salvata, aggiornalo.
+            if (pinnedId == note.id) {
+                withContext(Dispatchers.IO) { PinnedNoteWidget.updateAll(context) }
+            }
+        }
+    }
+
+    /** Fissa o sfissa la nota nel widget della home. */
+    fun pinNote(target: NoteData) {
+        if (pinnedId == target.id) {
+            // La nota e' gia' fissata: la sfissa.
+            pinnedId = 0L
+            pinnedStore.unpin()
+            scope.launch {
+                withContext(Dispatchers.IO) { PinnedNoteWidget.updateAll(context) }
+            }
+            return
+        }
+        // Il widget deve esistere gia' nella schermata home: se non c'e',
+        // si chiede all'utente se aggiungerlo.
+        val manager = AppWidgetManager.getInstance(context)
+        val widgetIds = manager.getAppWidgetIds(ComponentName(context, PinnedNoteWidget::class.java))
+        if (widgetIds.isNotEmpty()) {
+            pinnedId = target.id
+            pinnedStore.pin(target.id)
+            scope.launch {
+                withContext(Dispatchers.IO) { PinnedNoteWidget.updateAll(context) }
+            }
+        } else {
+            noteToPinWithoutWidget = target
         }
     }
 
@@ -262,11 +334,25 @@ fun MeLoSegnoApp(
 
     fun openSavedNote(loaded: NoteData) {
         note = loaded
-        textFieldValue = TextFieldValue(loaded.text, selection = TextRange(loaded.text.length))
-        activeFormat = loaded.activeFormatAt(loaded.text.length)
+        // Il cursore parte dall'inizio: il focus automatico del campo in
+        // modalita' testo non deve far scorrere il foglio fino in fondo.
+        textFieldValue = TextFieldValue(loaded.text, selection = TextRange(0))
+        // Il foglio si apre dov'e': il cursore in fondo non deve far saltare
+        // lo scroll alla fine della nota.
+        suppressCaretFollow = true
+        activeFormat = loaded.activeFormatAt(0)
         mode = if (loaded.strokes.isNotEmpty()) WritingMode.HAND else WritingMode.TEXT
         eraserOn = false
         scope.launch { drawerState.close() }
+    }
+
+    // Il widget ha chiesto di aprire una nota: si carica e si apre.
+    LaunchedEffect(openNoteRequest) {
+        if (openNoteRequest != 0L) {
+            val loaded = withContext(Dispatchers.IO) { repository.loadNote(openNoteRequest) }
+            if (loaded != null) openSavedNote(loaded)
+            onOpenNoteHandled()
+        }
     }
 
     // ---------- Modifiche al testo con gestione della formattazione ----------
@@ -298,6 +384,8 @@ fun MeLoSegnoApp(
         val newFormats = applyTextEdit(note.text, note.formats, value.text, activeFormat)
         note = note.copy(text = value.text, formats = newFormats)
         textFieldValue = value
+        // L'utente ha scritto: da qui in poi il foglio segue il cursore.
+        suppressCaretFollow = false
     }
 
     /**
@@ -381,7 +469,9 @@ fun MeLoSegnoApp(
     fun toggleStyle(kind: FormatKind) {
         val selection = textFieldValue.selection
         if (selection.max > selection.min) {
-            val current = note.effectiveFormatValue(selection.min, kind) ?: 0L
+            // Il valore corrente si legge all'inizio della selezione, senza
+            // ereditare dagli span che terminano esattamente li'.
+            val current = note.formatValueAtSelectionStart(selection.min, kind) ?: 0L
             val newValue = if (current == 1L) 0L else 1L
             note = note.withFormatApplied(selection.min, selection.max, kind, newValue)
             activeFormat = activeFormat.toggled(kind, newValue == 1L)
@@ -413,8 +503,10 @@ fun MeLoSegnoApp(
         drawerContent = {
             SavedNotesSheet(
                 notes = savedNotes,
+                pinnedId = pinnedId,
                 onCloseClick = { scope.launch { drawerState.close() } },
                 onNoteClick = ::openSavedNote,
+                onNotePin = ::pinNote,
                 onNoteDelete = { noteToDelete = it },
                 onNoteRename = { noteToRename = it },
                 onSettingsClick = {
@@ -462,33 +554,118 @@ fun MeLoSegnoApp(
                 )
             }
         ) { innerPadding ->
+            // Riserva della barra inferiore: quanto spazio occupa l'isola
+            // degli strumenti dal fondo della finestra (barra + inset).
+            val bottomReservePx =
+                innerPadding.calculateBottomPadding().value * densityPxPerDp
             Box(
                 modifier = Modifier
-                    .padding(innerPadding)
+                    // Il foglio si estende fino in fondo, anche sotto la barra
+                    // inferiore: si puo' scrivere nelle zone trasparenti ai
+                    // lati dell'isola; l'isola stessa resta interattiva.
+                    .padding(top = innerPadding.calculateTopPadding())
                     .fillMaxSize()
+                    .onSizeChanged { viewportHeightPx = it.height }
             ) {
-                // Testo: sempre visibile; modificabile solo in modalita' testo.
-                Crossfade(targetState = mode, label = "testo") { currentMode ->
-                    if (currentMode == WritingMode.TEXT) {
-                        TextEditorArea(
-                            value = textFieldValue,
+                // Su schermi larghi il foglio resta alla larghezza leggibile,
+                // centrato invece di allargarsi a tutto schermo.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = MAX_CONTENT_WIDTH)
+                        .align(Alignment.TopCenter)
+                ) {
+                    val sheetScroll = rememberScrollState()
+                    // Foglio unico: la pagina intera scorre, cosi' il testo e
+                    // i tratti a mano restano sempre sincronizzati.
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(sheetScroll)
+                    ) {
+                        SheetArea(
+                            mode = mode,
+                            note = note,
+                            textFieldValue = textFieldValue,
                             formats = note.formats,
                             focusRequester = textFocusRequester,
-                            onValueChange = ::onTextFieldChange
+                            onValueChange = ::onTextFieldChange,
+                            viewportHeightPx = viewportHeightPx,
+                            bottomReservePx = bottomReservePx,
+                            eraserOn = eraserOn,
+                            eraseRadiusPx = eraseRadiusPx,
+                            pxPerDp = densityPxPerDp,
+                            sheetScroll = sheetScroll,
+                            onEditorLayout = { textLayout = it },
+                            onNoteChange = { note = it }
                         )
-                    } else {
-                        TextDisplayArea(note = note)
+                    }
+
+                    // Il cursore resta sempre in vista: se esce dalla finestra
+                    // del foglio (sopra o dietro l'isola degli strumenti), lo
+                    // scroll lo riporta a vista.
+                    val density = LocalDensity.current
+                    // Il testo parte a 12dp dal bordo del foglio.
+                    val textInsetPx = with(density) { 12.dp.toPx() }
+                    val linePx = with(density) { 22.sp.toPx() }
+                    LaunchedEffect(
+                        textFieldValue.selection.end,
+                        textLayout,
+                        viewportHeightPx,
+                        bottomReservePx,
+                        mode
+                    ) {
+                        val layout = textLayout ?: return@LaunchedEffect
+                        if (mode != WritingMode.TEXT || viewportHeightPx <= 0) {
+                            return@LaunchedEffect
+                        }
+                        if (suppressCaretFollow) {
+                            // Finche' l'utente non scrive, il foglio resta
+                            // dov'e': nessun salto al cursore. Il consumo
+                            // avviene solo in onTextFieldChange.
+                            return@LaunchedEffect
+                        }
+                        val caret =
+                            textFieldValue.selection.end
+                                .coerceIn(0, layout.layoutInput.text.length)
+                        val rect = layout.getCursorRect(caret)
+                        val lineTop = rect.top + textInsetPx
+                        val lineBottom = rect.bottom + textInsetPx
+                        val scrollTop = sheetScroll.value.toFloat()
+                        // Limite inferiore visibile: la finestra del foglio
+                        // finisce dove comincia l'isola della barra inferiore.
+                        val visibleBottom = viewportHeightPx - bottomReservePx
+                        // Con la tastiera aperta su schermi piccoli l'isola e la
+                        // tastiera occupano quasi tutta la finestra: lo spazio
+                        // visibile e' troppo poco per mostrarci una riga, e
+                        // qualsiasi scroll nasconderebbe il cursore. Non si
+                        // scorre affinche' non torni spazio utile.
+                        if (visibleBottom < 2 * linePx) {
+                            return@LaunchedEffect
+                        }
+                        val target = when {
+                            // Cursore sopra la finestra: porta la riga in cima.
+                            lineTop < scrollTop -> lineTop - linePx
+                            // Cursore sotto la finestra: porta la riga sopra l'isola.
+                            lineBottom > scrollTop + visibleBottom ->
+                                lineBottom - visibleBottom + linePx
+                            else -> return@LaunchedEffect
+                        }
+                        // Il foglio non puo' scorrere oltre la propria altezza;
+                        // lo spazio extra sotto il testo e' lo stesso di SheetArea.
+                        val extraPx = with(density) {
+                            (24.dp.toPx() + linePx + bottomReservePx).toInt()
+                        }
+                        val maxScroll = with(density) {
+                            max(viewportHeightPx, layout.size.height + extraPx) -
+                                viewportHeightPx
+                        }.coerceAtLeast(0)
+                        val clamped = target.coerceIn(0f, maxScroll.toFloat())
+                        if (clamped != scrollTop) {
+                            sheetScroll.animateScrollTo(clamped.roundToInt())
+                        }
                     }
                 }
-                // Tratti: sempre disegnati sopra il testo; toccabili solo in modalita' a mano.
-                HandwritingArea(
-                    note = note,
-                    interactive = mode == WritingMode.HAND,
-                    eraserOn = eraserOn,
-                    eraseRadiusPx = eraseRadiusPx,
-                    pxPerDp = densityPxPerDp,
-                    onNoteChange = { note = it }
-                )
             }
         }
     }
@@ -512,6 +689,43 @@ fun MeLoSegnoApp(
         )
     }
 
+    // Popup per il fissaggio senza widget: confermare aggiunge il widget
+    // alla schermata home (dove supportato) e fissa la nota scelta.
+    noteToPinWithoutWidget?.let { target ->
+        AlertDialog(
+            onDismissRequest = { noteToPinWithoutWidget = null },
+            title = { Text(stringResource(R.string.widget_prompt_title)) },
+            text = { Text(stringResource(R.string.widget_prompt_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    noteToPinWithoutWidget = null
+                    pinnedId = target.id
+                    pinnedStore.pin(target.id)
+                    scope.launch {
+                        withContext(Dispatchers.IO) {
+                            PinnedNoteWidget.updateAll(context)
+                            // Aggiunta diretta del widget, dove il launcher la supporta.
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                runCatching {
+                                    AppWidgetManager.getInstance(context).requestPinAppWidget(
+                                        ComponentName(context, PinnedNoteWidget::class.java),
+                                        null,
+                                        null
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }) { Text(stringResource(R.string.widget_prompt_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { noteToPinWithoutWidget = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
     noteToDelete?.let { target ->
         AlertDialog(
             onDismissRequest = { noteToDelete = null },
@@ -520,8 +734,17 @@ fun MeLoSegnoApp(
             confirmButton = {
                 TextButton(onClick = {
                     noteToDelete = null
+                    // Se la nota eliminata era fissata, il widget torna vuoto.
+                    val wasPinned = pinnedId == target.id
+                    if (wasPinned) {
+                        pinnedId = 0L
+                        pinnedStore.unpin()
+                    }
                     scope.launch {
-                        withContext(Dispatchers.IO) { repository.deleteNote(target.id) }
+                        withContext(Dispatchers.IO) {
+                            repository.deleteNote(target.id)
+                            if (wasPinned) PinnedNoteWidget.updateAll(context)
+                        }
                         savedNotes = withContext(Dispatchers.IO) { repository.listNotes() }
                     }
                 }) { Text(stringResource(R.string.delete_confirm)) }
@@ -560,6 +783,8 @@ fun MeLoSegnoApp(
                     scope.launch {
                         withContext(Dispatchers.IO) {
                             repository.saveNote(target.copy(title = titleText.trim()))
+                            // Il titolo fissato nel widget cambia con la rinomina.
+                            if (pinnedId == target.id) PinnedNoteWidget.updateAll(context)
                         }
                         savedNotes = withContext(Dispatchers.IO) { repository.listNotes() }
                     }
@@ -624,8 +849,19 @@ private fun SettingsScreen(
     onUpdate: (AppSettings) -> Unit
 ) {
     val context = LocalContext.current
+    // Tasto indietro di sistema: torna all'editor invece di uscire dall'app.
+    BackHandler { onBack() }
     // Lingua scelta ma da confermare: se impostata, mostra l'avviso di riavvio.
     var pendingLanguage by remember { mutableStateOf<LanguageSetting?>(null) }
+    // Etichetta/colore icona scelti ma da confermare con riavvio.
+    var pendingIconChange by remember { mutableStateOf<AppSettings?>(null) }
+    fun askIconChange(updated: AppSettings) {
+        if (updated.useShortLabel != settings.useShortLabel ||
+            updated.iconColorKey != settings.iconColorKey
+        ) {
+            pendingIconChange = updated
+        }
+    }
     Surface(
         color = MaterialTheme.colorScheme.background,
         modifier = Modifier
@@ -633,7 +869,9 @@ private fun SettingsScreen(
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        // Su schermi larghi i contenuti restano alla larghezza leggibile, centrati.
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            Column(modifier = Modifier.fillMaxSize().widthIn(max = MAX_CONTENT_WIDTH)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -671,35 +909,6 @@ private fun SettingsScreen(
                         onClick = { onUpdate(settings.copy(defaultMode = WritingMode.HAND)) }
                     )
                 }
-                SettingsGroup(title = stringResource(R.string.settings_icon_label)) {
-                    OptionChip(
-                        labelRes = R.string.note_label,
-                        selected = !settings.useShortLabel,
-                        onClick = { onUpdate(settings.copy(useShortLabel = false)) }
-                    )
-                    OptionChip(
-                        labelRes = R.string.app_name,
-                        selected = settings.useShortLabel,
-                        onClick = { onUpdate(settings.copy(useShortLabel = true)) }
-                    )
-                }
-                SettingsGroup(title = stringResource(R.string.settings_theme)) {
-                    OptionChip(
-                        labelRes = R.string.theme_light,
-                        selected = settings.theme == ThemeSetting.LIGHT,
-                        onClick = { onUpdate(settings.copy(theme = ThemeSetting.LIGHT)) }
-                    )
-                    OptionChip(
-                        labelRes = R.string.theme_dark,
-                        selected = settings.theme == ThemeSetting.DARK,
-                        onClick = { onUpdate(settings.copy(theme = ThemeSetting.DARK)) }
-                    )
-                    OptionChip(
-                        labelRes = R.string.theme_system,
-                        selected = settings.theme == ThemeSetting.SYSTEM,
-                        onClick = { onUpdate(settings.copy(theme = ThemeSetting.SYSTEM)) }
-                    )
-                }
                 SettingsGroup(title = stringResource(R.string.settings_language)) {
                     OptionChip(
                         labelRes = R.string.lang_it,
@@ -729,6 +938,73 @@ private fun SettingsScreen(
                         }
                     )
                 }
+                SettingsGroup(title = stringResource(R.string.settings_theme)) {
+                    OptionChip(
+                        labelRes = R.string.theme_light,
+                        selected = settings.theme == ThemeSetting.LIGHT,
+                        onClick = { onUpdate(settings.copy(theme = ThemeSetting.LIGHT)) }
+                    )
+                    OptionChip(
+                        labelRes = R.string.theme_dark,
+                        selected = settings.theme == ThemeSetting.DARK,
+                        onClick = { onUpdate(settings.copy(theme = ThemeSetting.DARK)) }
+                    )
+                    OptionChip(
+                        labelRes = R.string.theme_system,
+                        selected = settings.theme == ThemeSetting.SYSTEM,
+                        onClick = { onUpdate(settings.copy(theme = ThemeSetting.SYSTEM)) }
+                    )
+                }
+                // Personalizza icona: etichetta nel drawer e sfondo dell'icona.
+                Column {
+                    Text(
+                        text = stringResource(R.string.settings_icon_customize),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = stringResource(R.string.settings_icon_label),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        OptionChip(
+                            labelRes = R.string.note_label,
+                            selected = !settings.useShortLabel,
+                            onClick = { askIconChange(settings.copy(useShortLabel = false)) }
+                        )
+                        OptionChip(
+                            labelRes = R.string.app_name,
+                            selected = settings.useShortLabel,
+                            onClick = { askIconChange(settings.copy(useShortLabel = true)) }
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        text = stringResource(R.string.settings_icon_color),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    // Selettore come quello dell'inchiostro: un pallino singolo
+                    // che mostra il colore scelto; il popup porta la tavolozza.
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        IconColorPicker(
+                            currentKey = settings.iconColorKey,
+                            onPick = { key -> askIconChange(settings.copy(iconColorKey = key)) }
+                        )
+                        // Ripristina: torna al blu del logo.
+                        OptionChip(
+                            labelRes = R.string.settings_icon_color_reset,
+                            selected = settings.iconColorKey == "default",
+                            onClick = { askIconChange(settings.copy(iconColorKey = "default")) }
+                        )
+                    }
+                }
+            }
             }
         }
     }
@@ -748,6 +1024,27 @@ private fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { pendingLanguage = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Conferma del cambio icona: salva etichetta e colore e riavvia l'app.
+    pendingIconChange?.let { updated ->
+        AlertDialog(
+            onDismissRequest = { pendingIconChange = null },
+            title = { Text(stringResource(R.string.icon_restart_title)) },
+            text = { Text(stringResource(R.string.icon_restart_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    pendingIconChange = null
+                    onUpdate(updated)
+                    restartApp(context)
+                }) { Text(stringResource(R.string.icon_restart_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingIconChange = null }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -857,15 +1154,17 @@ private fun EditorTopBar(
                     iconRes = R.drawable.ic_save,
                     descRes = R.string.save_desc,
                     onClick = onSaveClick,
-                    buttonSize = 34.dp,
-                    iconSize = 21.dp
+                    // Target di tocco 44dp: su un piccolo schermo un pulsante
+                    // troppo piccolo e' facile da mancare.
+                    buttonSize = 44.dp,
+                    iconSize = 24.dp
                 )
                 BarIcon(
                     iconRes = R.drawable.ic_delete,
                     descRes = R.string.trash_desc,
                     onClick = onTrashClick,
-                    buttonSize = 34.dp,
-                    iconSize = 21.dp
+                    buttonSize = 44.dp,
+                    iconSize = 24.dp
                 )
             }
         }
@@ -1164,6 +1463,57 @@ private fun ColorToolButton(current: Long, defaultColor: Color, onPick: (Long) -
     }
 }
 
+/**
+ * Selettore del colore dell'icona: un pallino singolo che mostra il colore
+ * impostato; al tap apre un popup con la tavolozza, come nell'editor.
+ */
+@Composable
+private fun IconColorPicker(currentKey: String, onPick: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val options = SettingsRepository.ICON_COLOR_OPTIONS
+    val current = options.firstOrNull { it.key == currentKey } ?: options.first()
+    IconButton(onClick = { expanded = true }, modifier = Modifier.size(40.dp)) {
+        ColorDot(
+            color = Color(current.argb),
+            selected = current.key == "default",
+            isDefault = true
+        )
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                options.take(6).forEach { option ->
+                    ColorDot(
+                        color = Color(option.argb),
+                        selected = option.key == currentKey,
+                        isDefault = option.key == "default",
+                        onClick = {
+                            onPick(option.key)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                options.drop(6).forEach { option ->
+                    ColorDot(
+                        color = Color(option.argb),
+                        selected = option.key == currentKey,
+                        isDefault = option.key == "default",
+                        onClick = {
+                            onPick(option.key)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
 /** Cerchio di colore; se selezionato porta un anello del colore primario. */
 @Composable
 private fun ColorDot(
@@ -1299,17 +1649,93 @@ private fun CheckIcon() {
 
 // ---------- Aree di scrittura ----------
 
-/** Pagina di testo: campo a tutto schermo, gia' pronto a ricevere il focus. */
+/**
+ * Foglio unico: testo e tratti a mano condividono la stessa pagina, che e'
+ * alta almeno quanto lo schermo e cresce col testo. Il foglio intero scorre
+ * fra le barre, cosi' testo e disegno restano sempre sincronizzati.
+ */
+@Composable
+private fun SheetArea(
+    mode: WritingMode,
+    note: NoteData,
+    textFieldValue: TextFieldValue,
+    formats: List<FormatSpan>,
+    focusRequester: FocusRequester,
+    onValueChange: (TextFieldValue) -> Unit,
+    viewportHeightPx: Int,
+    bottomReservePx: Float,
+    eraserOn: Boolean,
+    eraseRadiusPx: Float,
+    pxPerDp: Float,
+    sheetScroll: ScrollState,
+    onEditorLayout: (TextLayoutResult) -> Unit,
+    onNoteChange: (NoteData) -> Unit
+) {
+    // Altezza intrinseca del testo, misurata dall'impaginazione: evita di
+    // misurare nodi con larghezza limitata (resterebbero bloccati).
+    var textHeightPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    // Sotto l'ultima riga: padding del foglio (12+12dp), una riga di riserva
+    // per assorbire il ritardo della misurazione e lo spazio dell'isola della
+    // barra inferiore, cosi' l'ultima riga puo' risalire sopra l'isola.
+    val extraPx = with(density) {
+        (24.dp.toPx() + 22.sp.toPx() + bottomReservePx).toInt()
+    }
+    val sheetHeightPx = max(viewportHeightPx, textHeightPx + extraPx).coerceAtLeast(1)
+    val sheetHeight = with(density) { sheetHeightPx.toDp() }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(sheetHeight)
+    ) {
+        // Testo: sempre visibile; modificabile solo in modalita' testo.
+        Crossfade(targetState = mode, label = "testo") { currentMode ->
+            if (currentMode == WritingMode.TEXT) {
+                TextEditorArea(
+                    value = textFieldValue,
+                    formats = formats,
+                    focusRequester = focusRequester,
+                    minContentPx = sheetHeightPx,
+                    onTextHeight = { textHeightPx = it },
+                    onLayout = onEditorLayout,
+                    onValueChange = onValueChange
+                )
+            } else {
+                TextDisplayArea(
+                    note = note,
+                    minContentPx = sheetHeightPx,
+                    onTextHeight = { textHeightPx = it }
+                )
+            }
+        }
+        // Tratti: sempre disegnati sopra il testo; toccabili solo in modalita' a mano.
+        HandwritingArea(
+            note = note,
+            interactive = mode == WritingMode.HAND,
+            eraserOn = eraserOn,
+            eraseRadiusPx = eraseRadiusPx,
+            pxPerDp = pxPerDp,
+            sheetScroll = sheetScroll,
+            onNoteChange = onNoteChange
+        )
+    }
+}
+
+/** Pagina di testo: campo largo quanto il foglio, gia' pronto a ricevere il focus. */
 @Composable
 private fun TextEditorArea(
     value: TextFieldValue,
     formats: List<FormatSpan>,
     focusRequester: FocusRequester,
+    minContentPx: Int,
+    onTextHeight: (Int) -> Unit,
+    onLayout: (TextLayoutResult) -> Unit,
     onValueChange: (TextFieldValue) -> Unit
 ) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .heightIn(min = with(LocalDensity.current) { minContentPx.toDp() })
             .padding(12.dp)
     ) {
         if (value.text.isEmpty()) {
@@ -1326,8 +1752,15 @@ private fun TextEditorArea(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .focusRequester(focusRequester),
+            // L'altezza del testo definita dall'impaginazione: cresce col
+            // contenuto e fa crescere il foglio con lui. Il layout serve
+            // anche a far seguire il cursore allo scroll del foglio.
+            onTextLayout = { result ->
+                onTextHeight(result.size.height)
+                onLayout(result)
+            },
             textStyle = TextStyle(
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 16.sp,
@@ -1344,19 +1777,28 @@ private fun TextEditorArea(
 
 /** Testo in sola lettura, con la stessa formattazione, in modalita' a mano. */
 @Composable
-private fun TextDisplayArea(note: NoteData) {
-    Text(
-        text = note.text.annotated(note.formats),
-        style = TextStyle(
-            color = MaterialTheme.colorScheme.onSurface,
-            fontSize = 16.sp,
-            lineHeight = 22.sp
-        ),
+private fun TextDisplayArea(
+    note: NoteData,
+    minContentPx: Int,
+    onTextHeight: (Int) -> Unit
+) {
+    Box(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .fillMaxWidth()
+            .heightIn(min = with(LocalDensity.current) { minContentPx.toDp() })
             .padding(12.dp)
-    )
+    ) {
+        Text(
+            text = note.text.annotated(note.formats),
+            style = TextStyle(
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                lineHeight = 22.sp
+            ),
+            onTextLayout = { onTextHeight(it.size.height) },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 /** Pagina a mano: ogni tratto mantiene il proprio spessore e colore. */
@@ -1367,11 +1809,15 @@ private fun HandwritingArea(
     eraserOn: Boolean,
     eraseRadiusPx: Float,
     pxPerDp: Float,
+    sheetScroll: ScrollState,
     onNoteChange: (NoteData) -> Unit
 ) {
     val strokes = remember(note.strokes) {
         note.strokes.map { InkStroke(it.points.strokeToPoints(), it.widthDp.dp, it.color) }
     }
+    // Larghezza del canvas: salvata con i tratti, serve al widget per
+    // ricomporre la pagina esattamente com'e' nell'editor.
+    var canvasWidthPx by remember { mutableStateOf(0f) }
     HandwritingCanvas(
         strokes = strokes,
         interactive = interactive,
@@ -1379,6 +1825,7 @@ private fun HandwritingArea(
         defaultColor = MaterialTheme.colorScheme.primary,
         currentColor = note.inkColor,
         currentWidth = note.strokeSizeDp.dp,
+        scroll = sheetScroll,
         onStrokeFinished = { ink ->
             onNoteChange(
                 note.copy(
@@ -1386,7 +1833,8 @@ private fun HandwritingArea(
                         points = ink.points.strokeToFlat(),
                         widthDp = ink.width.value,
                         color = ink.color
-                    )
+                    ),
+                    canvasWidthPx = if (canvasWidthPx > 0f) canvasWidthPx else note.canvasWidthPx
                 )
             )
         },
@@ -1397,7 +1845,9 @@ private fun HandwritingArea(
                 )
             )
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .onSizeChanged { canvasWidthPx = it.width.toFloat() }
     )
 }
 
@@ -1405,17 +1855,22 @@ private fun HandwritingArea(
 @Composable
 private fun SavedNotesSheet(
     notes: List<NoteData>,
+    pinnedId: Long,
     onCloseClick: () -> Unit,
     onNoteClick: (NoteData) -> Unit,
+    onNotePin: (NoteData) -> Unit,
     onNoteDelete: (NoteData) -> Unit,
     onNoteRename: (NoteData) -> Unit,
     onSettingsClick: () -> Unit,
     onInfoClick: () -> Unit
 ) {
+    // Larghezza frazionaria con tetto: su schermi piccoli resta visibile una
+    // parte dell'editor, che si puo' toccare (o scorrere verso sinistra) per
+    // chiudere; su schermi larghi il drawer non ingloba tutto lo schermo.
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val drawerMaxWidth = (screenWidthDp * 0.72f).dp.coerceAtMost(320.dp)
     ModalDrawerSheet(
-        // Larghezza frazionaria: su schermi piccoli resta visibile una parte
-        // dell'editor, che si puo' toccare (o scorrere verso sinistra) per chiudere.
-        modifier = Modifier.fillMaxWidth(0.72f)
+        modifier = Modifier.width(drawerMaxWidth)
     ) {
         Row(
             modifier = Modifier
@@ -1462,7 +1917,9 @@ private fun SavedNotesSheet(
                     items(notes, key = { it.id }) { note ->
                         SavedNoteRow(
                             note = note,
+                            isPinned = pinnedId == note.id,
                             onNoteClick = onNoteClick,
+                            onNotePin = onNotePin,
                             onNoteDelete = onNoteDelete,
                             onNoteRename = onNoteRename
                         )
@@ -1540,7 +1997,9 @@ private fun DrawerActionCell(
 @Composable
 private fun SavedNoteRow(
     note: NoteData,
+    isPinned: Boolean,
     onNoteClick: (NoteData) -> Unit,
+    onNotePin: (NoteData) -> Unit,
     onNoteDelete: (NoteData) -> Unit,
     onNoteRename: (NoteData) -> Unit
 ) {
@@ -1557,14 +2016,14 @@ private fun SavedNoteRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            // Data e ora affiancati, piu' piccoli, sotto al titolo.
-            Row(
-                modifier = Modifier.padding(top = 1.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            // Data e ora su due righe, piu' piccole: cosi' restano spazio
+            // per i pulsanti anche sullo schermo stretto.
+            Column(
+                modifier = Modifier.padding(top = 1.dp)
             ) {
                 Text(
                     text = formatNoteDay(note.id),
@@ -1579,6 +2038,19 @@ private fun SavedNoteRow(
             }
         }
         Row {
+            IconButton(
+                onClick = { onNotePin(note) },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_pin),
+                    contentDescription = stringResource(
+                        if (isPinned) R.string.unpin_desc else R.string.pin_desc
+                    ),
+                    modifier = Modifier.size(22.dp),
+                    tint = if (isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             IconButton(
                 onClick = { onNoteRename(note) },
                 modifier = Modifier.size(40.dp)

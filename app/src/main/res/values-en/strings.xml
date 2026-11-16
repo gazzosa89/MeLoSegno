@@ -42,6 +42,11 @@
     <string name="language_restart_message">The app will restart to apply it to every part.</string>
     <string name="language_restart_confirm">Restart</string>
 
+    <!-- Icon change confirmation (label and color) -->
+    <string name="icon_restart_title">Apply the new icon?</string>
+    <string name="icon_restart_message">To apply the new label and color, the app must be restarted.</string>
+    <string name="icon_restart_confirm">Restart</string>
+
     <!-- Bottom toolbar -->
     <string name="size_text_desc">Text size</string>
     <string name="style_desc">Text style</string>
@@ -62,7 +67,10 @@
     <string name="settings_desc">Settings</string>
     <string name="back_desc">Back</string>
     <string name="settings_default_mode">Default mode</string>
-    <string name="settings_icon_label">App label</string>
+    <string name="settings_icon_customize">Customize icon</string>
+    <string name="settings_icon_label">Label</string>
+    <string name="settings_icon_color">Color</string>
+    <string name="settings_icon_color_reset">Reset</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_language">Language</string>
     <string name="lang_it">Italiano</string>
@@ -79,13 +87,29 @@
     <string name="author_name">Daniele Corda</string>
     <string name="version_label">Version</string>
     <string name="license_label">License</string>
-    <string name="license_text">MeLoSegno is released under the GPL license.</string>
+    <string name="license_text">MeLoSegno is released under the GPLv3 license.</string>
     <string name="share_button">Share this app</string>
     <string name="share_message">Check out MeLoSegno, the quick notes app: %1$s</string>
-    <string name="app_link">https://www.link-placeholder.it/melosegno</string>
+    <string name="app_link">https://github.com/gazzosa89/MeLoSegno</string>
     <string name="donate_text">MeLoSegno is completely free and ad-free. If you find it useful and want to support this and other projects, buy me a coffee! ☕</string>
     <string name="donate_button">Support</string>
-    <string name="donate_link">https://www.link-placeholder.it/dona-melosegno</string>
+    <string name="donate_link">https://ko-fi.com/danielecorda</string>
+
+    <!-- Third-party component licenses -->
+    <string name="licenses_title">Third-party component licenses</string>
+    <string name="licenses_intro">The app uses the following open source components, all released under the Apache License 2.0.</string>
+    <string name="license_project">Project</string>
+    <string name="license_full_text_title">Full text of the Apache License 2.0</string>
+
+    <!-- Privacy statement -->
+    <string name="privacy_title">Privacy</string>
+    <string name="privacy_intro">MeLoSegno is designed to work entirely offline.</string>
+    <string name="privacy_bullet_1">It collects no personal data and sends none to the developer.</string>
+    <string name="privacy_bullet_2">No advertising, analytics or tracking systems are used.</string>
+    <string name="privacy_bullet_3">Notes, drawings and settings are saved locally on the device.</string>
+    <string name="privacy_bullet_4">No account or registration is required.</string>
+    <string name="privacy_bullet_5">No system permissions are required.</string>
+    <string name="privacy_bullet_6">External links are opened only at the user\'s request.</string>
 
     <!-- Lists in text mode -->
     <string name="list_desc">Lists</string>
@@ -95,4 +119,14 @@
     <!-- Title editing from the notes list -->
     <string name="rename_desc">Edit title</string>
     <string name="rename_title">Edit the title</string>
+
+    <!-- Pinned note and widget -->
+    <string name="pin_desc">Pin this note to the widget</string>
+    <string name="unpin_desc">Unpin this note from the widget</string>
+    <string name="widget_name">Pinned note</string>
+    <string name="widget_empty_note">Empty note</string>
+    <string name="widget_no_pin">No pinned note.\nOpen a note and tap the pin.</string>
+    <string name="widget_prompt_title">Add the widget?</string>
+    <string name="widget_prompt_message">The pin is used to attach a note to the widget, so you always have it in sight. However, you don\'t have the widget yet. Do you want to add it to the Home screen?</string>
+    <string name="widget_prompt_confirm">Add</string>
 </resources>

@@ -54,11 +54,19 @@ data class FormatStyle(
     }
 }
 
-/** Valore attivo di una proprieta' alla posizione [index] (il confine destro eredita). */
-fun NoteData.effectiveFormatValue(index: Int, kind: FormatKind): Long? {
+/** Valore attivo di una proprieta' alla posizione [index] (eredita dal lato sinistro). */
+fun NoteData.effectiveFormatValue(index: Int, kind: FormatKind): Long? =
+    formats.inheritedValueAt(index, kind)
+
+/**
+ * Valore della proprieta' coperto dall'inizio della selezione: a differenza
+ * dell'ereditarieta' al cursore, uno span che finisce esattamente li' non conta,
+ * perche' la selezione comincia con testo che non ne fa parte.
+ */
+fun NoteData.formatValueAtSelectionStart(index: Int, kind: FormatKind): Long? {
     var value: Long? = null
     formats.forEach { span ->
-        if (span.kind == kind && index >= span.start && index <= span.end) value = span.value
+        if (span.kind == kind && span.start <= index && index < span.end) value = span.value
     }
     return value
 }
@@ -73,30 +81,83 @@ fun NoteData.activeFormatAt(index: Int): FormatStyle = FormatStyle(
     strike = effectiveFormatValue(index, FormatKind.STRIKE)?.let { it == 1L }
 )
 
-/** Toglie dalla lista gli span di [kind] che intersecano [from, to), spezzandoli se servisse. */
-fun List<FormatSpan>.withoutKindInRange(kind: FormatKind, from: Int, to: Int): List<FormatSpan> =
-    buildList {
-        forEach { span ->
-            if (span.kind != kind) {
-                add(span)
-            } else {
-                if (span.start < from) add(span.copy(end = minOf(span.end, from)))
-                if (span.end > to) add(span.copy(start = maxOf(span.start, to)))
+/**
+ * Valore della proprieta' nel punto [index], preferendo gli span che finiscono
+ * esattamente li' (la formattazione del carattere alla sinistra del cursore
+ * vince su quella del carattere alla destra).
+ */
+private fun List<FormatSpan>.inheritedValueAt(index: Int, kind: FormatKind): Long? {
+    var left: Long? = null
+    var right: Long? = null
+    forEach { span ->
+        if (span.kind != kind) return@forEach
+        if (span.start < index && index <= span.end) left = span.value
+        else if (span.start <= index && index < span.end) right = span.value
+    }
+    return left ?: right
+}
+
+/** Le proprieta' scelte esplicitamente nel formato attivo. */
+private fun FormatStyle.chosenKinds(): Set<FormatKind> = buildSet {
+    textSizeSp?.let { add(FormatKind.SIZE) }
+    color?.let { add(FormatKind.COLOR) }
+    bold?.let { add(FormatKind.BOLD) }
+    italic?.let { add(FormatKind.ITALIC) }
+    underline?.let { add(FormatKind.UNDERLINE) }
+    strike?.let { add(FormatKind.STRIKE) }
+}
+
+/**
+ * Ordina gli span, scarta gli intervalli vuoti e unisce quelli adiacenti o
+ * sovrapposti con la stessa proprieta' e lo stesso valore.
+ */
+private fun List<FormatSpan>.merged(): List<FormatSpan> =
+    groupBy { it.kind to it.value }
+        .flatMap { (_, group) ->
+            group.sortedBy { it.start }.fold(mutableListOf<FormatSpan>()) { acc, span ->
+                val last = acc.lastOrNull()
+                if (last != null && span.start <= last.end) {
+                    acc[acc.lastIndex] = last.copy(end = maxOf(last.end, span.end))
+                } else {
+                    acc.add(span)
+                }
+                acc
             }
         }
+        .filter { it.start < it.end }
+        .sortedBy { it.start }
+
+/** Toglie dalla lista gli span di [kind] che intersecano [from, to), spezzandoli se servisse. */
+fun List<FormatSpan>.withoutKindInRange(kind: FormatKind, from: Int, to: Int): List<FormatSpan> {
+    val result = mutableListOf<FormatSpan>()
+    // Ciclo esplicito: dentro buildList la forEach risolverebbe il receiver
+    // della lista in costruzione (vuota) e non quello della lista di partenza.
+    for (span in this) {
+        if (span.kind != kind) {
+            result.add(span)
+        } else {
+            if (span.start < from) result.add(span.copy(end = minOf(span.end, from)))
+            if (span.end > to) result.add(span.copy(start = maxOf(span.start, to)))
+        }
     }
+    return result
+}
 
 /** Applica una proprieta' di formattazione alla selezione [start, end). */
 fun NoteData.withFormatApplied(start: Int, end: Int, kind: FormatKind, value: Long): NoteData {
     if (start >= end) return this
     val cleaned = formats.withoutKindInRange(kind, start, end)
-    return copy(formats = cleaned + FormatSpan(start, end, kind, value))
+    return copy(formats = (cleaned + FormatSpan(start, end, kind, value)).merged())
 }
 
 /**
- * Aggiorna gli span dopo una modifica al testo: il testo sostituito perde la
- * vecchia formattazione, quello inserito riceve il formato attivo, il resto
- * viene spostato della differenza di lunghezza.
+ * Aggiorna gli span dopo una modifica al testo.
+ *
+ * La zona modificata e' [prefix, oldEnd) nel vecchio testo e [prefix, newEnd)
+ * nel nuovo. Gli span che la intersecano si spezzano: la parte prima resta,
+ * la parte dopo si sposta della differenza di lunghezza, il testo sostituito
+ * perde il tratto. Il testo inserito prende il formato attivo; per le
+ * proprieta' non scelte eredita il formato presente nel punto della modifica.
  */
 fun applyTextEdit(
     oldText: String,
@@ -117,18 +178,30 @@ fun applyTextEdit(
     }
     val delta = newEnd - oldEnd
 
-    val result = formats.mapNotNull { span ->
+    val result = formats.flatMap { span ->
         when {
-            span.end <= prefix -> span
-            span.start >= oldEnd -> span.copy(start = span.start + delta, end = span.end + delta)
-            else -> if (span.start < prefix) span.copy(end = prefix) else null
+            // Tutto prima della modifica: resta com'e'.
+            span.end <= prefix -> listOf(span)
+            // Tutto dopo: traslato della differenza di lunghezza.
+            span.start >= oldEnd -> listOf(span.copy(start = span.start + delta, end = span.end + delta))
+            // Interseca la modifica: si spezza alle due estremita'.
+            else -> buildList {
+                if (span.start < prefix) add(span.copy(end = prefix))
+                if (span.end > oldEnd) add(span.copy(start = newEnd, end = span.end + delta))
+            }
         }
     }.toMutableList()
 
     if (newEnd > prefix) {
         result += active.toSpans(prefix, newEnd)
+        val chosen = active.chosenKinds()
+        FormatKind.entries.filter { it !in chosen }.forEach { kind ->
+            formats.inheritedValueAt(prefix, kind)?.let { value ->
+                result += FormatSpan(prefix, newEnd, kind, value)
+            }
+        }
     }
-    return result.filter { it.start < it.end }
+    return result.merged()
 }
 
 /** Testo con la formattazione applicata, per la visualizzazione. */

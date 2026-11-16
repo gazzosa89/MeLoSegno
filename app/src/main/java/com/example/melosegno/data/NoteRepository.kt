@@ -28,7 +28,10 @@ data class NoteData(
     val strokes: List<Stroke> = emptyList(),
     // Strumenti correnti per i NUOVI tratti
     val strokeSizeDp: Float = DEFAULT_STROKE_SIZE_DP,
-    val inkColor: Long = 0L
+    val inkColor: Long = 0L,
+    // Larghezza in px del canvas dell'editor al momento del disegno dei tratti;
+    // serve al widget per ricomporre la pagina esattamente com'e' nell'editor.
+    val canvasWidthPx: Float = 0f
 ) {
     fun isEmpty(): Boolean = text.isBlank() && strokes.isEmpty()
 
@@ -80,6 +83,7 @@ class NoteRepository(context: Context) {
             }))
             put(KEY_STROKE_SIZE, note.strokeSizeDp.toDouble())
             put(KEY_INK_COLOR, note.inkColor)
+            put(KEY_CANVAS_WIDTH, note.canvasWidthPx.toDouble())
         }
         fileFor(id).writeText(json.toString())
         return note.copy(id = id)
@@ -88,6 +92,9 @@ class NoteRepository(context: Context) {
     fun deleteNote(id: Long) {
         fileFor(id).delete()
     }
+
+    /** Carica una singola nota per id, o null se non esiste piu'. */
+    fun loadNote(id: Long): NoteData? = runCatching { readNote(fileFor(id)) }.getOrNull()
 
     private fun fileFor(id: Long) = File(notesDir, "note_$id.json")
 
@@ -140,7 +147,8 @@ class NoteRepository(context: Context) {
             formats = formats,
             strokes = strokes,
             strokeSizeDp = json.optDouble(KEY_STROKE_SIZE, NoteData.DEFAULT_STROKE_SIZE_DP.toDouble()).toFloat(),
-            inkColor = json.optLong(KEY_INK_COLOR, 0L)
+            inkColor = json.optLong(KEY_INK_COLOR, 0L),
+            canvasWidthPx = json.optDouble(KEY_CANVAS_WIDTH, 0.0).toFloat()
         )
     }
 
@@ -152,5 +160,6 @@ class NoteRepository(context: Context) {
         const val KEY_STROKES = "strokes"
         const val KEY_STROKE_SIZE = "strokeSizeDp"
         const val KEY_INK_COLOR = "inkColor"
+        const val KEY_CANVAS_WIDTH = "canvasWidthPx"
     }
 }
