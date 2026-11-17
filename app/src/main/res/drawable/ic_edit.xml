@@ -4,7 +4,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Modifica: foglio con matita che entra dall'angolo -->
+    <!-- Modifica -->
     <path
         android:strokeColor="#FF1C1B1F"
         android:strokeWidth="2"

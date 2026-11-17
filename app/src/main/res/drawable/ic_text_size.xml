@@ -4,7 +4,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Dimensione del testo: una A grande e una piccola -->
+    <!-- Dimensione -->
     <path
         android:strokeColor="#FF1C1B1F"
         android:strokeWidth="2"

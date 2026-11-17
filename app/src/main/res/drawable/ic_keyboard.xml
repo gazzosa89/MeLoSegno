@@ -4,7 +4,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Tastiera: corpo arrotondato, tasti e barra spaziatrice -->
+    <!-- Tastiera -->
     <path
         android:strokeColor="#FF1C1B1F"
         android:strokeWidth="2"

@@ -4,7 +4,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Spessore del tratto: tre pallini crescenti -->
+    <!-- Spessore -->
     <path
         android:fillColor="#FF1C1B1F"
         android:pathData="M3.6,12a1.4,1.4 0 1 0 2.8,0a1.4,1.4 0 1 0 -2.8,0z" />

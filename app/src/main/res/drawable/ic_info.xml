@@ -4,7 +4,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Informazioni: cerchio, punto esclamativo tondo -->
+    <!-- Info -->
     <path
         android:strokeColor="#FF1C1B1F"
         android:strokeWidth="2"

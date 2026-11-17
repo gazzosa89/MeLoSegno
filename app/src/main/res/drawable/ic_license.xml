@@ -4,7 +4,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Documento con angolo piegato e righe di testo -->
+    <!-- Documento -->
     <path
         android:strokeColor="#FF1C1B1F"
         android:strokeWidth="2"

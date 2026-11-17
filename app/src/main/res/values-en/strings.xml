@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">MeLoSegno</string>
-    <!-- Label shown in the apps drawer -->
+    <!-- Label in apps drawer -->
     <string name="note_label">Note</string>
 
     <!-- Top bar -->
@@ -13,7 +13,7 @@
     <string name="save_desc">Save</string>
     <string name="delete_desc">Delete note</string>
 
-    <!-- Discard current note -->
+    <!-- Discard note -->
     <string name="discard_title">Discard the note?</string>
     <string name="discard_message">The current note will be discarded and a new empty one will open.</string>
     <string name="discard_confirm">Discard</string>

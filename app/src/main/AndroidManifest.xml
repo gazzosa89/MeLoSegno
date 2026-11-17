@@ -20,7 +20,7 @@
             android:theme="@style/Theme.MeLoSegno"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Widget della nota fissata: toccarlo apre l'app su quella nota. -->
+        <!-- Widget che apre l'app su quella nota. -->
         <receiver
             android:name=".widget.PinnedNoteWidget"
             android:exported="false"
@@ -33,11 +33,7 @@
                 android:resource="@xml/pinned_note_widget_info" />
         </receiver>
 
-        <!-- Alias del launcher: una variante per combinazione di
-         etichetta e colore; una sola e' abilitata alla volta,
-         scelta da Impostazioni (quella predefinita resta abilitata
-         nel manifest per non lasciare l'app senza icona dopo un
-         aggiornamento, prima del primo avvio). -->
+        <!-- Varianti dell'icona -->
         <activity-alias
             android:name="com.example.melosegno.Launcher_Note_default"
             android:enabled="true"
